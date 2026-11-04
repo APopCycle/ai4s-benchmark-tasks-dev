@@ -6,10 +6,11 @@ reads the *artifacts*, so it has no blind spots: however the reward got written 
 built by an idiom no analysis followed, an embedded heredoc, a subprocess -- the value
 that reached harbor is on disk here and is compared directly.
 
-`/validate` is the right host for it because it runs two agents whose rewards are known in
-advance: the oracle must score 1 and the nop must score 0. That turns a vague "is this
-binary?" into an exact assertion, and it catches the case no static rule can: a verifier
-whose reward and whose test report disagree.
+`/validate` is the right host for it because it runs two agents whose expected outputs are
+known in advance. A workflow oracle scores 1. A frontier oracle reproduces the frozen SOTA,
+so it scores 0 while reporting `valid=true` and `match_sota=true`. The nop scores 0. These
+exact assertions catch the case no static rule can: a verifier whose reward, diagnostics,
+and test report disagree.
 
 Checked, per trial:
 
@@ -25,9 +26,12 @@ Checked, per trial:
                harbor viewer renders and that cross-task review tooling reads, so a
                malformed one is silently useless rather than loudly broken.
 
-  cross-check  the reward agrees with the report: an oracle run claiming reward 1 while its
-               own ctrf reports failures means the two disagree about what happened, which
-               is a verifier bug whichever one is right.
+  details      when requested, reward-details.json exists and its boolean `valid` and
+               `match_sota` fields equal the task-type-specific expectations.
+
+  cross-check  the reward agrees with the report: reward 1 requires no failed tests, while
+               reward 0 requires at least one failed gating test. For a frontier oracle,
+               the failed test is the intentionally unmet breakthrough threshold.
 
 Usage:
     python3 ci_checks/check-verifier-output.py <harbor-output-dir> --expect-reward 1
@@ -157,6 +161,38 @@ def cross_check(trial, reward, summary, fails):
             "reward and the test report disagree")
 
 
+def check_details(trial, expected_valid, expected_match_sota, fails):
+    if expected_valid is None and expected_match_sota is None:
+        return
+    path = trial / "verifier" / "reward-details.json"
+    if not path.exists():
+        fails.append(f"{trial.name}: no reward-details.json was written")
+        return
+    try:
+        payload = json.loads(path.read_text())
+    except ValueError as exc:
+        fails.append(f"{trial.name}: reward-details.json is not valid JSON ({exc})")
+        return
+    if not isinstance(payload, dict):
+        fails.append(f"{trial.name}: reward-details.json must contain a JSON object")
+        return
+    for field, expected in (("valid", expected_valid), ("match_sota", expected_match_sota)):
+        if expected is None:
+            continue
+        if payload.get(field) is not expected:
+            fails.append(
+                f"{trial.name}: reward-details.json has {field}={payload.get(field)!r}, "
+                f"expected {expected!r}")
+    if expected_valid is True:
+        for field in ("scientific_score", "improvement_over_sota", "reward"):
+            if field not in payload:
+                fails.append(f"{trial.name}: reward-details.json is missing {field}")
+
+
+def parse_bool(value):
+    return {"true": True, "false": False}[value]
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("output_dir", help="harbor output directory from a completed run")
@@ -166,6 +202,10 @@ def main(argv=None):
                         help="fail when ctrf.json is absent, rather than only when malformed")
     parser.add_argument("--no-reward-json", action="store_true",
                         help="fail when reward.json is present at all")
+    parser.add_argument("--expect-valid", choices=("true", "false"), default=None,
+                        help="expected reward-details.json valid field")
+    parser.add_argument("--expect-match-sota", choices=("true", "false"), default=None,
+                        help="expected reward-details.json match_sota field")
     args = parser.parse_args(argv)
 
     trials = find_trials(args.output_dir)
@@ -180,6 +220,12 @@ def main(argv=None):
         summary = check_ctrf(trial, args.require_ctrf, fails)
         ctrf_seen += summary is not None
         cross_check(trial, reward, summary, fails)
+        check_details(
+            trial,
+            parse_bool(args.expect_valid) if args.expect_valid is not None else None,
+            parse_bool(args.expect_match_sota) if args.expect_match_sota is not None else None,
+            fails,
+        )
 
     for message in fails:
         print(f"FAIL {message}")

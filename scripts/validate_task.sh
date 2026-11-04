@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run Harbor oracle and nop, requiring exact binary mean rewards 1 and 0.
+# Run Harbor oracle and nop under the task-type-specific reference contract.
 set -euo pipefail
 
 if [ "$#" -ne 1 ]; then
@@ -8,6 +8,19 @@ if [ "$#" -ne 1 ]; then
 fi
 TASK_DIR="${1%/}"
 OUT_ROOT=$(mktemp -d "${TMPDIR:-/tmp}/ai4s-harbor-validation.XXXXXX")
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+
+task_type=$(python3 - "$TASK_DIR/task.toml" <<'PY'
+import sys, tomllib
+with open(sys.argv[1], "rb") as handle:
+    print(tomllib.load(handle)["metadata"]["task_type"])
+PY
+)
+if [ "$task_type" = "frontier_research" ]; then
+  oracle_expected=0
+else
+  oracle_expected=1
+fi
 
 run_and_reward() {
   local agent="$1" out="$2" log="$3"
@@ -18,11 +31,17 @@ run_and_reward() {
 }
 
 oracle_reward=$(run_and_reward oracle "$OUT_ROOT/oracle" "$OUT_ROOT/oracle.log")
-if [ "$oracle_reward" != "1" ] && [ "$oracle_reward" != "1.0" ] && [ "$oracle_reward" != "1.000" ]; then
-  echo "FAIL: oracle mean reward is ${oracle_reward:-unparseable}, expected 1" >&2
+if [ "$oracle_reward" != "$oracle_expected" ] && [ "$oracle_reward" != "$oracle_expected.0" ] && [ "$oracle_reward" != "$oracle_expected.000" ]; then
+  echo "FAIL: oracle mean reward is ${oracle_reward:-unparseable}, expected $oracle_expected for $task_type" >&2
   echo "Logs retained at $OUT_ROOT" >&2
   exit 1
 fi
+oracle_check=(python3 "$ROOT/ci_checks/check-verifier-output.py" "$OUT_ROOT/oracle"
+  --expect-reward "$oracle_expected" --require-ctrf --no-reward-json)
+if [ "$task_type" = "frontier_research" ]; then
+  oracle_check+=(--expect-valid true --expect-match-sota true)
+fi
+"${oracle_check[@]}"
 
 nop_reward=$(run_and_reward nop "$OUT_ROOT/nop" "$OUT_ROOT/nop.log")
 if [ "$nop_reward" != "0" ] && [ "$nop_reward" != "0.0" ] && [ "$nop_reward" != "0.000" ]; then
@@ -31,5 +50,12 @@ if [ "$nop_reward" != "0" ] && [ "$nop_reward" != "0.0" ] && [ "$nop_reward" != 
   exit 1
 fi
 
-echo "PASS: oracle=$oracle_reward nop=$nop_reward"
+nop_check=(python3 "$ROOT/ci_checks/check-verifier-output.py" "$OUT_ROOT/nop"
+  --expect-reward 0 --require-ctrf --no-reward-json)
+if [ "$task_type" = "frontier_research" ]; then
+  nop_check+=(--expect-valid false --expect-match-sota false)
+fi
+"${nop_check[@]}"
+
+echo "PASS: task_type=$task_type oracle=$oracle_reward nop=$nop_reward"
 echo "Run artifacts: $OUT_ROOT"

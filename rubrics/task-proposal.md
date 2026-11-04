@@ -19,7 +19,7 @@ All TB-Science tasks must be:
 
 1. Verifiable: the task must be checkable with a program that is all-but-guaranteed to detect errors and all-but-guaranteed to return "valid" for correct solutions.
 2. Well-specified: The problem description completely describes what the verification algorithm will look for. Nothing is left up to guessing.
-3. Solvable: The problem must provide a solution, or must have a convincing argument the problem is solvable. The solution should be implementable by someone who knows exactly what to do; there is no upper bound on how long that takes — a longer implementation is fine, and often reflects a more substantial task.
+3. Solvable: A workflow task must provide a solution or a convincing argument that it is solvable. A frontier-research task instead identifies and reproduces the frozen current SOTA, defines an independently certifiable meaningful improvement, and gives a convincing argument that progress remains possible; it need not already have a reward-1 solution.
 4. Difficult: the task should be very hard to solve. There are many reasons a problem could be difficult, we require it to be difficult for a "good reason".
 5. Scientifically grounded & interesting: the task must be a realistic, research-level scientific workflow that genuinely requires domain knowledge — not generic work a competent generalist could do — and interesting enough that some scientist would care about or be paid for the result.
 6. Scope: the task must genuinely belong to its required primary domain and, for Engineering Sciences only, its required secondary discipline. The required research area is free text. Judge the actual subject, not the label.
@@ -32,7 +32,7 @@ The verification must be efficient and reliable. Tasks that have non-determinism
 
 The verifier needs to be almost perfect, but not provably perfect. Using LLM-as-a-judge is permissible in rare and extraordinary circumstances but only if it can be shown that the verifier essentially never makes a mistake. One way to show this is by showing that multiple different LLMs always make the same determination. It must be documented what alternate approaches could have substituted for LLM-as-a-judge and why those are insufficient.
 
-The task must have concrete, checkable outputs — such as numerical results, generated files, statistical fits, or reproducible data — that can be verified programmatically against a reference solution. We are not looking for open-ended tasks like hypothesis generation or literature review. The verification algorithm must reliably separate correct from incorrect solutions.
+The task must have concrete, checkable outputs — such as numerical results, generated files, statistical fits, or reproducible data — that can be verified programmatically. We are not looking for open-ended tasks like hypothesis generation or literature review. The verification algorithm must reliably separate invalid output, a valid result that does not exceed SOTA, and a qualifying frontier improvement where applicable.
 
 ## Well-specified
 

@@ -4,7 +4,7 @@ description = "Verifier is reliable, deterministic, and efficient with concrete,
 guidance = """
 All tasks must be verifiable. The verification must be efficient and reliable — re-running the verifier hundreds of times should show no failures. Tasks with nondeterminism must always be verified correctly.
 
-The task must have concrete, checkable outputs — such as numerical results, generated files, statistical fits, or reproducible data — that can be verified programmatically against a reference solution. We are not looking for open-ended tasks like hypothesis generation or literature review.
+The task must have concrete, checkable outputs — such as numerical results, generated files, statistical fits, or reproducible data — that can be verified programmatically. Workflow tasks normally use a passing reference solution. A frontier-research task instead uses a frozen current-SOTA oracle: it must be a valid, independently certified baseline with `match_sota=true`, but it intentionally receives reward 0 because reward 1 is reserved for a meaningful improvement over SOTA. We are not looking for open-ended tasks like hypothesis generation or literature review.
 
 The verifier needs to be almost perfect, but not provably perfect. Using LLM-as-a-judge is permissible in rare and extraordinary circumstances, but only if it can be shown that the verifier essentially never makes a mistake. One way to show this is by having multiple different LLMs always make the same determination. It must be documented what alternate approaches could have substituted for LLM-as-a-judge and why those are insufficient.
 
@@ -46,15 +46,15 @@ Reject tasks that are primarily hard because of how many corner cases must be ha
 
 [[criteria]]
 name = "solvable"
-description = "Solution demonstrates the task is solvable within time and resource constraints"
+description = "The workflow solution or frontier SOTA baseline establishes a valid, realistic task contract"
 guidance = """
-There must be a working solution that passes all tests. A task may legitimately take an expert who already knows the approach a long time to implement — that is fine; what matters is that the difficulty is substantive, living in *figuring out* the method and the real complexity, not in sheer volume of contrived mechanical work.
+For `workflow_automation`, there must be a working solution that passes all tests. For `frontier_research`, a reward-1 solution is not required or generally known: the oracle must reproduce the frozen current SOTA, be accepted as scientifically valid, report `match_sota=true`, and receive reward 0. The task must give a convincing, evidence-based case that further improvement is possible and define an independently certifiable, meaningful improvement threshold.
 
 The dependencies, datasets, and computational requirements must be realistic and accessible. The task should be buildable and runnable in a containerized environment. Required software, libraries, and data should be publicly available or clearly described if synthetic.
 
 This criterion is about whether a correct, working solution exists (and is provided, or convincingly argued), NOT about how hard the task is to figure out (that is the `difficult` criterion, which expects tasks that would challenge an experienced researcher). There is no upper bound on how long a task takes an expert to implement — a genuinely substantial task can take a long time, and a large time investment often signals a meatier, more valuable task. Do not flag a task merely for being long or high-effort. Only treat effort as a problem when the length comes from contrived, mechanical busywork with no substantive difficulty — not from genuine scientific or engineering complexity.
 
-PASS if a working solution is provided that passes all tests and dependencies are accessible — regardless of how long the task would take an expert to implement. FAIL if no solution is provided (without adequate justification), the solution doesn't pass tests, dependencies are unavailable, or the task's difficulty is pure contrived mechanical busywork rather than substantive."""
+PASS if a workflow task provides a passing solution, or a frontier task provides a valid frozen-SOTA oracle and a credible improvement target, and dependencies are accessible. FAIL if the applicable baseline contract is not demonstrated, dependencies are unavailable, or the task's difficulty is pure contrived mechanical busywork rather than substantive."""
 
 [[criteria]]
 name = "difficult"
@@ -603,6 +603,20 @@ Valid sections and their fields (defined by the Harbor library):
 - research_advisor, referred_by (both optional — absent is fine, do not fault a task for omitting them)
 - domain, field, subfield, tags, expert_time_estimate_hours
 - relevant_experience, conflicts_of_interest
+
+[metadata.frontier] — required only for `task_type = "frontier_research"`:
+- metric, direction, sota_as_of, sota_source
+- sota_agent, sota_submission_id, sota_artifact_sha256
+- sota_exact_numerator, sota_exact_denominator
+- minimum_meaningful_improvement
+- reference_expected_reward, reference_expected_valid, reference_expected_match_sota
+
+The frontier oracle must set the three expected fields to `0`, `true`, and
+`true`, respectively. Its verifier must write `valid`, `match_sota`,
+`scientific_score`, `improvement_over_sota`, and `reward` to
+`reward-details.json`. `match_sota` means that the independently certified
+scientific score equals the frozen SOTA score; it is separate from mere
+submission validity.
 
 Note that difficulty_explanation, solution_explanation and verification_explanation
 are NOT task.toml fields. They live in README.md, as "## Difficulty", "## Reference

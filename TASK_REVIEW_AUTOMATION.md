@@ -4,7 +4,9 @@
 
 `static-checks.yml` validates every proposal and runs the TBS-derived static
 checks over formal tasks. `validate-task.yml` builds changed formal tasks and
-runs oracle/nop using Harbor 0.24.0 without model API keys.
+runs oracle/nop using Harbor 0.24.0 without model API keys. Workflow oracle is
+expected to score 1; frontier oracle is expected to score 0 while reporting
+`valid=true` and `match_sota=true`.
 
 Local equivalents:
 

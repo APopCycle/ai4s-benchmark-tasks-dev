@@ -8,7 +8,8 @@ its partial-credit structure silently discarded by every consumer (the pass rate
 40% of the way there. Every task in this benchmark writes 0 or 1; this check makes that
 convention enforceable instead of tribal.
 
-Note that `/validate` cannot catch this. It runs the oracle (reward 1.0) and the nop agent
+Note that `/validate` cannot catch this. It runs an oracle (reward 1.0 for workflow tasks;
+reward 0 with separate validity/SOTA diagnostics for frontier tasks) and the nop agent
 (reward 0.0), both of which are binary by construction -- fractional values only appear
 for partial agent submissions, which no validation stage produces.
 

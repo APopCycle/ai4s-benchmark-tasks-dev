@@ -30,7 +30,10 @@ Choose exactly one according to the final success criterion:
   multiple interdependent research stages and produce verifiable results.
 - **Frontier research (`frontier_research`)** centers on a frontier problem with
   important scientific or application value to the field. The agent must
-  autonomously explore methods and achieve testable research progress.
+  autonomously explore methods and achieve a verifiable improvement over a
+  frozen current-SOTA baseline. Its oracle reproduces that baseline and is
+  expected to be valid but receive reward `0`; only a qualifying improvement
+  receives reward `1`.
 
 > [!IMPORTANT]
 > **Difficulty requirement:** Every task must meaningfully challenge frontier
@@ -71,8 +74,9 @@ harbor run -p "$TASK" -a oracle
 harbor run -p "$TASK" -a nop
 ```
 
-Oracle should receive reward `1`; nop should receive `0`. Four complete examples
-are listed in [reference-tasks/](reference-tasks/README.md), with matching
+For workflow tasks, oracle should receive reward `1` and nop `0`. For frontier
+tasks, oracle should receive reward `0` with `valid=true` and `match_sota=true`.
+Five complete examples are listed in [reference-tasks/](reference-tasks/README.md), with matching
 proposals in [proposals/examples/](proposals/examples/).
 
 ### 3. Submit a proposal
@@ -150,7 +154,7 @@ and the inline instructions in [task-template.toml](task-template.toml).
 | `task.toml` | metadata, proposal linkage, artifacts, resources, and timeouts |
 | `instruction.md` | complete agent-facing task and output requirements |
 | `environment/` | agent-visible software and data |
-| `solution/` | oracle reference solution |
+| `solution/` | workflow reference solution, or frozen-SOTA oracle for a frontier task |
 | `tests/` | separate no-network verifier and binary reward |
 | `README.md` | required task summary covering difficulty, reference solution, and verification |
 
@@ -168,7 +172,10 @@ harbor run -p <task-path> -a oracle -k 5
 harbor run -p <task-path> -a nop
 ```
 
-Oracle must pass stably and nop must score zero. Run a frontier agent/model with:
+Workflow oracle must pass stably and nop must score zero. A frontier oracle must
+instead reproduce the registered SOTA with `valid=true`, `match_sota=true`, and
+reward `0`; `scripts/validate_task.sh` checks the appropriate contract from
+`task_type`. Run a frontier agent/model with:
 
 ```bash
 harbor run -p <task-path> \
@@ -187,8 +194,7 @@ Open one task PR linked to its merged proposal. Summarize the self-check and
 model-evaluation results; the PR template and reviewers will request any further
 evidence needed.
 
-The subsequent review follows the seven-stage workflow above. See
-[REVIEWING.md](REVIEWING.md) for responsibilities and
+See [REVIEWING.md](REVIEWING.md) for reviewer responsibilities and
 [TASK_REVIEW_AUTOMATION.md](TASK_REVIEW_AUTOMATION.md) for automated checks.
 
 ## License

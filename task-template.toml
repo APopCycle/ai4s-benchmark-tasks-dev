@@ -33,6 +33,13 @@ keywords = []
 proposal_id = "AI4S-2026-domain-task-slug"
 proposal_path = "proposals/domain/task-slug.md"
 task_type = "workflow_automation" # workflow_automation | frontier_research
+# A frontier_research task must also add a [metadata.frontier] table containing:
+# metric, direction, sota_as_of, sota_source, sota_agent, sota_submission_id,
+# sota_artifact_sha256, sota_exact_numerator, sota_exact_denominator,
+# minimum_meaningful_improvement, reference_expected_reward = 0,
+# reference_expected_valid = true, and reference_expected_match_sota = true.
+# Its verifier writes valid, match_sota, scientific_score,
+# improvement_over_sota and reward to reward-details.json.
 author_name = ""
 author_email = ""
 author_organization = "" # your university, institute, lab, or employer. Required and non-empty. With no affiliation, write exactly "Independent Researcher" (see CONTRIBUTING.md)

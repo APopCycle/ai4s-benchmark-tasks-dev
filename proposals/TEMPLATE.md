@@ -48,8 +48,8 @@ Explain why this task is worth solving and the scientific value, application val
 Please answer here in prose.
 
 **前沿问题突破的领域内意义与当前 SOTA（仅前沿问题攻关任务）/ Domain significance of a frontier advance and current SOTA (frontier-research tasks only)**
-若任务类型为 `frontier_research`，请说明预期突破对本领域的意义、截至提案提交时的当前 SOTA，以及什么可验证的结果可被视为相对 SOTA 的实质进展；请附关键论文、基准或其他一手来源的直接链接，并注明信息日期。若任务类型为 `workflow_automation`，请填写“不适用 / Not applicable”。
-For a `frontier_research` task, explain why the intended advance matters to the field, identify the current SOTA as of the proposal date, and state what verifiable result would constitute meaningful progress beyond it. Include direct links to key papers, benchmarks, or other primary sources and give the as-of date. For a `workflow_automation` task, write “不适用 / Not applicable.”
+若任务类型为 `frontier_research`，请说明预期突破对本领域的意义、截至提案提交时的当前 SOTA、指标方向、冻结日期与一手来源、可复现的 SOTA artifact，以及相对 SOTA 的最小实质改进幅度和独立认证方法。前沿任务的 oracle 应复现该 SOTA，得到 `valid=true`、`match_sota=true` 和 reward `0`；请解释什么结果才能获得 reward `1`。若任务类型为 `workflow_automation`，请填写“不适用 / Not applicable”。
+For a `frontier_research` task, explain why the intended advance matters, and specify the current SOTA, metric direction, freeze date and primary source, reproducible SOTA artifact, minimum meaningful improvement, and independent certification method. The frontier oracle should reproduce this SOTA with `valid=true`, `match_sota=true`, and reward `0`; explain what result qualifies for reward `1`. For a `workflow_automation` task, write “不适用 / Not applicable.”
 
 请在此用自然语言回答。
 Please answer here in prose.
@@ -77,8 +77,8 @@ Describe the software and key versions, compute resources such as CPU, memory, s
 
 ## 7. 评价标准 / Evaluation criteria
 
-请说明如何判定任务成功，包括可程序化计算的指标或基于 LLM rubric 的判分规则。评价方案应允许科学上正确的替代解通过，同时拒绝空洞、取巧或明显错误的提交。
-Explain how success will be determined, including programmatically computed metrics or a binary LLM grading rubric. The evaluation should accept scientifically valid alternative solutions while rejecting empty, shortcut, or clearly incorrect submissions.
+请说明如何判定任务成功，包括可程序化计算的指标或基于 LLM rubric 的判分规则。评价方案应允许科学上正确的替代解通过，同时拒绝空洞、取巧或明显错误的提交。前沿任务还必须分别报告 `valid`、`match_sota`、`scientific_score`、`improvement_over_sota` 和二元 `reward`。
+Explain how success will be determined, including programmatically computed metrics or a binary LLM grading rubric. The evaluation should accept scientifically valid alternative solutions while rejecting empty, shortcut, or clearly incorrect submissions. A frontier task must additionally report `valid`, `match_sota`, `scientific_score`, `improvement_over_sota`, and binary `reward` separately.
 
 请在此用自然语言回答。 / Please answer here in prose.
 

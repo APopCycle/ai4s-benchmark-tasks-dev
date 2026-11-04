@@ -27,7 +27,9 @@ AI4S 使用 [Harbor](https://github.com/harbor-framework/harbor) 的任务格式
 - **科研工作流自动化任务（`workflow_automation`）**：围绕真实科研中的复杂工作流，
   要求智能体完成多个相互关联的研究环节，并产出可验证的结果。
 - **前沿科研问题攻关任务（`frontier_research`）**：围绕领域内具有重要科学或应用意义
-  的前沿问题，要求智能体自主探索方法并取得可检验的研究进展。
+  的前沿问题，要求智能体自主探索方法，并相对冻结的当前 SOTA 取得可验证改进。此类
+  任务的 oracle 用于复现 SOTA，应为有效结果但 reward 为 `0`；只有达到规定突破幅度
+  的结果才能得到 reward `1`。
 
 > [!IMPORTANT]
 > **难度要求：** 所有任务都必须对前沿大语言模型具有实质挑战性；预期在 Anthropic 和
@@ -67,7 +69,8 @@ harbor run -p "$TASK" -a oracle
 harbor run -p "$TASK" -a nop
 ```
 
-Oracle 应获得 reward `1`，nop 应获得 `0`。四个完整样例见
+工作流任务的 oracle 应获得 reward `1`，nop 应获得 `0`。前沿任务的 oracle 应获得
+reward `0`，同时输出 `valid=true` 和 `match_sota=true`。五个完整样例见
 [reference-tasks/](reference-tasks/README.md)，对应 proposal 见
 [proposals/examples/](proposals/examples/)。
 
@@ -144,7 +147,7 @@ harbor tasks init <task-slug> \
 | `task.toml` | metadata、proposal 关联、artifacts、资源和 timeout |
 | `instruction.md` | agent 可见的完整任务和输出要求 |
 | `environment/` | agent 可见的软件和数据 |
-| `solution/` | oracle 参考解 |
+| `solution/` | 工作流参考解，或前沿任务的冻结 SOTA oracle |
 | `tests/` | 独立无网络 verifier 和二元 reward |
 | `README.md` | 必需的任务摘要，说明难度、参考解和验证方式 |
 
@@ -162,7 +165,9 @@ harbor run -p <task-path> -a oracle -k 5
 harbor run -p <task-path> -a nop
 ```
 
-Oracle 必须稳定通过，nop 必须得到零分。运行前沿 agent/model：
+工作流任务的 oracle 必须稳定通过，nop 必须得到零分。前沿任务的 oracle 则必须复现
+登记的 SOTA，输出 `valid=true`、`match_sota=true` 和 reward `0`；
+`scripts/validate_task.sh` 会根据 `task_type` 检查对应规则。运行前沿 agent/model：
 
 ```bash
 harbor run -p <task-path> \
@@ -179,7 +184,7 @@ trajectory 审核使用 [rubrics/trial-analysis.toml](rubrics/trial-analysis.tom
 创建一个只包含一个任务的 PR，并关联已经合并的 proposal。简要汇总自行检查和模型评测
 结果即可；如需其他证据，PR 模板和审核组会进一步提示。
 
-后续审核遵循文首七阶段流程。各角色职责见 [REVIEWING.md](REVIEWING.md)，自动检查见
+审核角色职责见 [REVIEWING.md](REVIEWING.md)，自动检查见
 [TASK_REVIEW_AUTOMATION.md](TASK_REVIEW_AUTOMATION.md)。
 
 ## 许可证
