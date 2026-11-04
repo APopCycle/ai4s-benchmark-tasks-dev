@@ -1,73 +1,196 @@
 # AI4S Benchmark Tasks — Dev Preview
 
-> This `-dev` repository is an invitation-only preview for testing task
-> authoring, submission and evaluation. A separate production repository will
-> be created after this workflow is validated with the first expert cohort.
+[中文版](README_zh.md)
 
-This repository evaluates research agents on two task types:
+> This invitation-only `-dev` repository is for the first expert cohort. A
+> separate production repository will be created after the workflow is tested.
 
-- `workflow_automation`: complete a real, established scientific workflow;
-- `frontier_research`: make preregistered, objectively verifiable progress on
-  a frontier research problem.
+AI4S evaluates research agents with the
+[Harbor](https://github.com/harbor-framework/harbor) task format and harness.
+Tasks in this preview should be solvable primarily through code and terminal
+tools; computer-use extensions are deferred.
 
-Task execution uses [Harbor](https://github.com/harbor-framework/harbor). The
-task format and quality bar are inherited from
-[Terminal-Bench-Science](https://github.com/harbor-framework/terminal-bench-science)
-at the revision recorded in [UPSTREAM.md](UPSTREAM.md). AI4S changes only the
-proposal mechanism, task type and preview taxonomy.
+## Workflow
 
-## Start here
+1. Install Harbor and configure model access.
+2. Run a complete reference task.
+3. Write, validate, and submit a task proposal.
+4. After proposal approval, build the Harbor task.
+5. Run static checks, oracle/nop, and model evaluation.
+6. Submit the complete task PR.
 
-- [15-minute quickstart](docs/QUICKSTART.md)
-- [Proposal guide](docs/PROPOSAL_GUIDE.md)
-- [Task contribution guide](CONTRIBUTING.md)
-- [Self-evaluation guide](docs/SELF_EVALUATION.md)
-- [Human review process](REVIEWING.md)
-- [AI4S differences from TBS](docs/AI4S_DELTA.md)
-- [Runnable reference tasks](reference-tasks/README.md)
+Do not implement a formal task before its proposal has been approved and merged.
 
-## Contributor flow
+## Task types
 
-```text
-proposal Markdown PR
-        ↓ one domain approval + merge
-Harbor task implementation PR
-        ↓ static checks + oracle/nop
-domain review ∥ technical review
-        ↓
-final bar-raiser
-```
+Choose exactly one according to the final success criterion:
 
-Merge does not automatically place a task in a benchmark release.
-`tasks/dataset.toml` is the release allowlist.
+- **Scientific workflow automation (`workflow_automation`)** centers on a
+  complex workflow from real scientific research. The agent must complete
+  multiple interdependent research stages and produce verifiable results.
+- **Frontier research (`frontier_research`)** centers on a frontier problem with
+  important scientific or application value to the field. The agent must
+  autonomously explore methods and achieve testable research progress.
 
-## Quick commands
+> [!IMPORTANT]
+> **Difficulty requirement:** Every task must meaningfully challenge frontier
+> large language models. Its expected success rate on frontier models from both
+> Anthropic and OpenAI must be below 30%.
+
+## Quickstart
+
+### 1. Install Harbor and configure model access
+
+Requirements: Git, Docker, Python 3.11+, and
+[`uv`](https://docs.astral.sh/uv/).
 
 ```bash
 uv tool install --force "harbor==0.24.0"
-
-python3 scripts/check_proposal.py proposals/<domain>/<task-slug>.md
-bash scripts/run_task_checks.sh tasks/<domain>/<field>/<task-slug>
-
-harbor run -p reference-tasks/earth-environmental-sciences/atmospheric-sciences/sparse-network-assimilation -a oracle
-harbor run -p reference-tasks/earth-environmental-sciences/atmospheric-sciences/sparse-network-assimilation -a nop
+docker version
+harbor --version
 ```
 
-## Preview domains
+For agent/model trials, set the API key required by your provider, for example:
 
-1. Mathematical Sciences
-2. Physical Sciences
-3. Chemical and Materials Sciences
-4. Life Sciences
-5. Medical, Neuroscience and Health Sciences
-6. Earth and Environmental Sciences
-7. Computer and Information Sciences
-8. Engineering Sciences
+```bash
+export ANTHROPIC_API_KEY=<your-key>
+export OPENAI_API_KEY=<your-key>
+```
 
-The field registry is in `.github/reviewer-pool.yml`. Empty reviewer lists mean
-manual assignment during the preview, not absent quality review.
+Only set keys you actually use, and never commit them. See Harbor's
+[pre-integrated agents](https://docs.harborframework.com/agents/pre-integrated-agents)
+and [authentication resolution](https://docs.harborframework.com/agents/agent-auth-resolution)
+for supported agents, model names, API keys, and native CLI authentication.
 
-## License and provenance
+### 2. Run a reference task
 
-Apache-2.0. TBS-derived components and reference tasks retain upstream
-attribution and canaries; see [NOTICE](NOTICE) and [UPSTREAM.md](UPSTREAM.md).
+```bash
+TASK=reference-tasks/earth-environmental-sciences/sparse-network-assimilation
+bash scripts/run_task_checks.sh --reference "$TASK"
+harbor run -p "$TASK" -a oracle
+harbor run -p "$TASK" -a nop
+```
+
+Oracle should receive reward `1`; nop should receive `0`. Four complete examples
+are listed in [reference-tasks/](reference-tasks/README.md), with matching
+proposals in [proposals/examples/](proposals/examples/).
+
+### 3. Submit a proposal
+
+Every proposal needs a controlled primary domain, an Engineering-only controlled
+secondary discipline, and a required free-text research area.
+
+#### Primary domains
+
+| Primary domain | Required slug |
+|---|---|
+| Mathematical Sciences | `mathematical-sciences` |
+| Physical Sciences | `physical-sciences` |
+| Chemical and Materials Sciences | `chemical-materials-sciences` |
+| Life Sciences | `life-sciences` |
+| Medical, Neuroscience and Health Sciences | `medical-neuroscience-health-sciences` |
+| Earth and Environmental Sciences | `earth-environmental-sciences` |
+| Computer and Information Sciences | `computer-information-sciences` |
+| Engineering Sciences | `engineering-sciences` |
+
+#### Engineering Sciences secondary disciplines
+
+| Secondary discipline | Required slug |
+|---|---|
+| Electronic Engineering | `electronic-engineering` |
+| Mechanical Engineering | `mechanical-engineering` |
+| Aerospace Engineering | `aerospace-engineering` |
+| Energy Engineering | `energy-engineering` |
+| Automation, Control and Robotics | `automation-control-robotics` |
+
+For an interdisciplinary task, choose the single primary domain that best
+matches its core scientific question and evaluation. Contact the project lead
+if no category fits; do not create a new controlled slug.
+
+Copy [proposals/TEMPLATE.md](proposals/TEMPLATE.md), and use the completed files
+in [proposals/examples/](proposals/examples/) as references:
+
+```bash
+git checkout -b proposal/<task-slug>
+mkdir -p proposals/<primary-domain>
+cp proposals/TEMPLATE.md proposals/<primary-domain>/<task-slug>.md
+python3 scripts/check_proposal.py proposals/<primary-domain>/<task-slug>.md
+git diff --check
+```
+
+Then open one proposal-only PR. Begin implementation after the proposal is
+approved and merged.
+
+### 4. Build the Harbor task
+
+For a non-engineering task:
+
+```bash
+git checkout -b task/<task-slug>
+harbor tasks init <task-slug> \
+  --include-canary-strings \
+  --metadata-template task-template.toml \
+  -p tasks/<primary-domain>/
+```
+
+For an Engineering Sciences task:
+
+```bash
+harbor tasks init <task-slug> \
+  --include-canary-strings \
+  --metadata-template task-template.toml \
+  -p tasks/engineering-sciences/<secondary-discipline>/
+```
+
+Follow the [Harbor task format](https://harborframework.com/docs/task-format)
+and the inline instructions in [task-template.toml](task-template.toml).
+
+| Component | Purpose |
+|---|---|
+| `task.toml` | metadata, proposal linkage, artifacts, resources, and timeouts |
+| `instruction.md` | complete agent-facing task and output requirements |
+| `environment/` | agent-visible software and data |
+| `solution/` | oracle reference solution |
+| `tests/` | separate no-network verifier and binary reward |
+| `README.md` | required task summary covering difficulty, reference solution, and verification |
+
+Generate the required task README scaffold with:
+
+```bash
+python3 tools/task-readme/generate.py <task-path>
+```
+
+### 5. Self-check and evaluate
+
+```bash
+bash scripts/run_task_checks.sh <task-path>
+harbor run -p <task-path> -a oracle -k 5
+harbor run -p <task-path> -a nop
+```
+
+Oracle must pass stably and nop must score zero. Run a frontier agent/model with:
+
+```bash
+harbor run -p <task-path> \
+  --agent <agent-adapter> \
+  --model <provider/model> \
+  -k 3
+```
+
+Use [rubrics/task-implementation.toml](rubrics/task-implementation.toml) for the
+LLM implementation review and [rubrics/trial-analysis.toml](rubrics/trial-analysis.toml)
+for trajectory review.
+
+### 6. Submit the task
+
+Open one task PR linked to its merged proposal. Summarize the self-check and
+model-evaluation results; the PR template and reviewers will request any further
+evidence needed.
+
+The subsequent review follows the seven-stage workflow above. See
+[REVIEWING.md](REVIEWING.md) for responsibilities and
+[TASK_REVIEW_AUTOMATION.md](TASK_REVIEW_AUTOMATION.md) for automated checks.
+
+## License
+
+Apache-2.0. Third-party attribution is retained in [NOTICE](NOTICE).

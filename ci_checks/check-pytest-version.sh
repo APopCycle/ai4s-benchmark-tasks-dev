@@ -24,8 +24,7 @@ CANONICAL_CTRF="0.3.5"
 set -e
 
 if [ $# -eq 0 ]; then
-    # TB-Science nests tasks as tasks/<domain>/<field>/<slug>, so enumerate by
-    # locating task.toml rather than assuming a fixed depth.
+    # AI4S path depth is taxonomy-dependent, so locate task.toml recursively.
     TASK_DIRS=$(find tasks -type f -name task.toml -exec dirname {} \;)
 else
     TASK_DIRS="$@"

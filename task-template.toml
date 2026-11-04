@@ -49,7 +49,10 @@ referred_by = "" # optional — the AI4S organizer, advisor, or contributor who 
 # ci_checks/check-task-readme.sh fails a task whose README is missing, or whose
 # sections are missing or empty.
 domain = ""
+# Secondary discipline. Required only when domain = "engineering-sciences";
+# choose an exact slug from the taxonomy in README.md. Leave empty for every other domain.
 field = ""
+# Required free-text research area. It is not restricted to a taxonomy slug.
 subfield = ""
 tags = []
 expert_time_estimate_hours = 0.0

@@ -24,7 +24,7 @@ Output (JSON on stdout)::
 
     {
       "head_sha": "...",
-      "auto":   ["tasks/<domain>/<field>/<slug>", ...],
+      "auto":   ["<taxonomy-aware task path>", ...],
       "manual": [{"path": "...", "backend": "modal", "reason": "backend = modal"}, ...],
       "tasks":  [...all task dirs, sorted...]
     }

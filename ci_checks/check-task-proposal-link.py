@@ -11,12 +11,16 @@ from pathlib import Path
 
 
 def proposal_value(text: str, label: str) -> str | None:
-    match = re.search(
-        rf"^-\s*{re.escape(label)}\s*:\s*(.+?)\s*$",
-        text,
-        re.MULTILINE | re.IGNORECASE,
+    label_re = re.compile(
+        rf"(?:^|/\s*){re.escape(label)}(?:\s*\([^)]*\))?\s*$",
+        re.IGNORECASE,
     )
-    return match.group(1).strip().strip("`") if match else None
+    for line in text.splitlines():
+        match = re.match(r"^-\s*(.+?)\s*:\s*(.*?)\s*$", line)
+        if match and label_re.search(match.group(1)):
+            value = match.group(2).strip().strip("`")
+            return value or None
+    return None
 
 
 def main() -> int:
@@ -48,7 +52,8 @@ def main() -> int:
         "Proposal ID": proposal_id,
         "Task type": task_type,
         "Primary domain": metadata.get("domain"),
-        "Primary field": metadata.get("field"),
+        "Secondary discipline": metadata.get("field") or None,
+        "Research area": metadata.get("subfield") or None,
     }
     failed = False
     for label, task_value in expected.items():

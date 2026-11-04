@@ -22,7 +22,7 @@ All TB-Science tasks must be:
 3. Solvable: The problem must provide a solution, or must have a convincing argument the problem is solvable. The solution should be implementable by someone who knows exactly what to do; there is no upper bound on how long that takes — a longer implementation is fine, and often reflects a more substantial task.
 4. Difficult: the task should be very hard to solve. There are many reasons a problem could be difficult, we require it to be difficult for a "good reason".
 5. Scientifically grounded & interesting: the task must be a realistic, research-level scientific workflow that genuinely requires domain knowledge — not generic work a competent generalist could do — and interesting enough that some scientist would care about or be paid for the result.
-6. Scope: the task must genuinely belong to its assigned domain/field (stated in the proposal; for a PR, the task-folder path), and that field must be one of the covered sciences (life, physical, earth, mathematical, engineering). Judge the actual subject, not the label.
+6. Scope: the task must genuinely belong to its required primary domain and, for Engineering Sciences only, its required secondary discipline. The required research area is free text. Judge the actual subject, not the label.
 7. Outcome-verified: we are grading outcomes, not the process to get there. A process verifier is allowed in certain circumstances but should not be the primary objective.
 
 ## Verifiable
@@ -80,17 +80,12 @@ Crucially, genuine scientific work **requires real domain knowledge to do correc
 
 ## Scope
 
-The field the task is assigned to — stated in the proposal (for a PR, the `tasks/<domain>/<field>/` folder) — must be one of TB-Science's covered sciences, and the task must genuinely belong to it:
+The proposal must select one of the eight primary domains defined in the root `README.md`. Only Engineering Sciences proposals also select a controlled secondary discipline; all other proposals leave that field blank. A more specific research area is required free text and is not a controlled taxonomy node.
 
-- **Life sciences** — biology, medicine, neuroscience, ecology
-- **Physical sciences** — astronomy, chemistry, materials science, physics
-- **Earth sciences** — atmospheric sciences, ocean sciences, geosciences, environmental sciences
-- **Mathematical sciences** — applied mathematics, formal mathematics, operations research, statistics
-- **Engineering sciences** — chemical engineering, civil engineering, electrical engineering, mechanical engineering
-
-Two ways to fail: the assigned field is not a covered science, or the task does not actually belong to the field it claims (its real subject is a different field, or none). Judge the actual subject, not the label — an in-scope method (statistics, optimization, simulation, machine learning) applied to an out-of-scope subject is still out of scope, and a task shoehorned into a covered field it does not genuinely fit does not pass. (Whether the work is genuinely research-level science that needs real domain knowledge, rather than generic work, is judged under *Scientifically Grounded & Interesting*.)
-
-A task whose subject is outside the covered fields, or that does not genuinely belong to its assigned field, is a Reject; a genuinely borderline interdisciplinary case is an Uncertain for a human scope call.
+Reject a task if its substantive subject is outside the covered primary domains,
+if it is shoehorned into the wrong primary domain, or, for an engineering task,
+if its secondary discipline is wrong. A genuinely borderline interdisciplinary
+case is Uncertain and should be resolved by the project lead.
 
 ## Outcome-verified
 
@@ -144,9 +139,9 @@ After considering each of the seven criteria, make a final decision and explain 
 ## Template:
 
 ## Scientific Domain
-**Domain:** [e.g. Life Sciences]
-**Field:** [e.g. Biology]
-**Subfield:** [e.g. Genomics]
+**Primary domain:** [one controlled AI4S primary domain]
+**Secondary discipline:** [required only for Engineering Sciences; otherwise blank]
+**Research area:** [required free text]
 
 ## Problem Statement
 [re-statement]
@@ -172,7 +167,7 @@ After considering each of the seven criteria, make a final decision and explain 
 **Judgement:** {strong reject to strong accept}
 
 ## Scope
-[considerations discussing pros and cons — does the task genuinely belong to its assigned domain/field, and is that field a covered science (life/physical/earth/mathematical/engineering)? Judge the actual subject, not the label.]
+[considerations discussing pros and cons — does the task genuinely belong to its controlled primary domain and, for Engineering Sciences, its controlled secondary discipline? Judge the actual subject, not the label.]
 **Judgement:** {strong reject to strong accept}
 
 ## Outcome-Verified

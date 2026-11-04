@@ -1,39 +1,23 @@
 ---
 name: Task implementation
-about: Submit one complete Harbor task linked to an approved proposal
+about: Submit one Harbor task linked to an approved proposal
 ---
 
-## Approved proposal
+## Task
 
-- Proposal ID:
-- Merged proposal path:
-- Task type:
-- Domain / field:
+- Task path:
+- Approved proposal ID and path:
+- Primary domain:
+- Secondary discipline (Engineering Sciences only):
 
-## Evidence
+## Self-check summary
 
 - Static checks:
-- Oracle runs:
-- Nop run:
-- Frontier agent/model trials:
-- Trajectory failure analysis:
-- Alternative correct implementation:
-- Shortcut/adversarial tests:
-
-## Data, safety and reproducibility
-
-- Data provenance/license/revision/checksum:
-- Compute and wall-clock budget:
-- Conflicts of interest:
-- Ethics, privacy, biosecurity and dual use:
+- Oracle / nop:
+- LLM review and model trials:
 
 ## Checklist
 
-- [ ] One task only; task proposal was merged in an earlier PR.
-- [ ] Instruction requirements and verifier gates map both ways.
-- [ ] Verifier is separate, no-network and receives only declared artifacts.
-- [ ] Oracle is stable; nop, malformed and shortcut outputs score zero.
-- [ ] Correct alternative methods can pass.
-- [ ] Dependencies and data are pinned and checksum-verified.
-- [ ] Main reward is binary and diagnostics are separate.
-- [ ] I will maintain this task through the Dev preview.
+- [ ] This PR contains exactly one task linked to a merged proposal.
+- [ ] `bash scripts/run_task_checks.sh <task-path>` passes.
+- [ ] Required self-check and evaluation results are summarized above.

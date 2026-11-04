@@ -3,18 +3,16 @@ name: Task proposal
 about: Submit one Markdown proposal before implementing a task
 ---
 
-## Proposal file
+## Proposal
 
 - Path:
-- Primary domain / field:
+- Primary domain:
+- Secondary discipline (Engineering Sciences only):
+- Research area:
 - Task type:
-- Domain reviewer:
 
-## Author checklist
+## Self-check
 
-- [ ] This PR adds exactly one proposal and no task implementation.
+- [ ] This PR contains exactly one proposal and no task implementation.
 - [ ] `python3 scripts/check_proposal.py <path>` passes.
-- [ ] Scientific/application value is supported by specific evidence.
-- [ ] Difficulty comes from real research decisions, not clerical volume.
-- [ ] Frontier tasks state dated SOTA and a preregistered progress threshold.
-- [ ] Data rights, conflicts, ethics and safety are disclosed.
+- [ ] Rubric-based LLM self-review completed.

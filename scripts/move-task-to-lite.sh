@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
-# Move a PR's task from tasks/<domain>/<field>/<slug>/ to the flat lite/<slug>/.
+# Move a PR's taxonomy-aware task directory to the flat lite/<slug>/.
 #
-# The move is a pure rename: lite/ reads domain and field from task.toml
-# [metadata] (which check-task-fields.sh already requires non-empty), and the
+# The move is a pure rename: lite/ reads its classification from task.toml
+# [metadata], and the
 # README's managed header renders its taxonomy row from task.toml too, so no
 # file contents change.
 #
@@ -57,19 +57,21 @@ BASE=$(gh pr view "$PR" --json baseRefName --jq .baseRefName)
 git fetch --quiet origin "$BASE"
 
 # --- Find the task directory the PR adds -----------------------------------
-# Four-segment paths only: tasks/<domain>/<field>/<slug>. Three-dot range, the
-# same one detect-tasks uses, so commits landed on main after the branch point
-# don't leak in.
+# Non-engineering paths have three segments; Engineering Sciences paths have a
+# required fourth secondary-discipline segment. Three-dot range is the same one
+# detect-tasks uses, so commits landed on main after the branch point don't leak in.
 mapfile -t DIRS < <(git diff --name-only "origin/${BASE}...HEAD" \
-    | grep -E '^tasks/[^/]+/[^/]+/[^/]+/' \
-    | cut -d/ -f1-4 | sort -u)
+    | awk -F/ '$1 == "tasks" && NF >= 4 {
+        if ($2 == "engineering-sciences" && NF >= 5) print $1 "/" $2 "/" $3 "/" $4;
+        else print $1 "/" $2 "/" $3
+      }' | sort -u)
 
 if [ "${#DIRS[@]}" -eq 0 ]; then
     if git diff --name-only "origin/${BASE}...HEAD" | grep -q '^lite/'; then
         echo "Nothing to do: this PR already targets lite/."
         exit 0
     fi
-    echo "FAIL: PR touches no tasks/<domain>/<field>/<slug>/ directory." >&2
+    echo "FAIL: PR touches no recognized taxonomy-aware task directory." >&2
     exit 1
 fi
 if [ "${#DIRS[@]}" -gt 1 ]; then
@@ -103,8 +105,7 @@ git mv "$SRC" "$DST"
 echo "check-task-path.sh $DST:"
 if ! bash ci_checks/check-task-path.sh "$DST"; then
     echo >&2
-    echo "FAIL: flat layout rejected. lite/ needs [metadata].domain and .field in" >&2
-    echo "      task.toml — fix those on the PR first." >&2
+    echo "FAIL: flat layout rejected. Fix the task.toml taxonomy metadata first." >&2
     exit 1
 fi
 echo "  OK"
@@ -122,8 +123,8 @@ fi
 git commit --quiet -m "Move $SLUG to the lite set
 
 Technically solid, but solved too easily by frontier models to earn a place
-in the main benchmark. lite/ is flat; domain and field come from task.toml
-[metadata]."
+in the main benchmark. lite/ is flat; taxonomy classification comes from
+task.toml [metadata]."
 
 git push
 echo

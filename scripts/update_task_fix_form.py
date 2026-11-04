@@ -7,7 +7,7 @@ by the Update Task Counts workflow on every push to main that touches tasks/.
 
 Only the lines between the `# tasks:begin` / `# tasks:end` markers are
 rewritten; everything else in the form is left alone. Each option reads
-`<slug> — tasks/<domain>/<field>/<slug>`: the slug leads so the browser's
+`<slug> — <full task path>`: the slug leads so the browser's
 type-to-jump on a native select actually finds it (see render_options), and
 the full path stays on the line because that is what the downstream
 automation (task-fix-issue.yml → task_reviewers.py) parses back out of the
@@ -33,7 +33,7 @@ def task_paths() -> list[str]:
     """Main-set tasks (nested) first, then lite tasks (flat). Archived tasks are
     retired and don't take fixes, so they're not offered."""
     out = []
-    for toml in TASKS.glob("*/*/*/task.toml"):
+    for toml in TASKS.rglob("task.toml"):
         if toml.parent.name not in EXCLUDED_DIRS:
             out.append(toml.parent.as_posix())
     lite = [t.parent.as_posix() for t in Path("lite").glob("*/task.toml")] if Path("lite").is_dir() else []

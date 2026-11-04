@@ -86,16 +86,17 @@ PASS if the task is a realistic, research-level scientific computing problem dra
 
 [[criteria]]
 name = "scope"
-description = "In scope for AI4S — belongs to its assigned covered-science domain/field"
+description = "In scope for AI4S — belongs to its primary domain and, for engineering, secondary discipline"
 guidance = """
 The task must be **in scope for AI4S**, and two things must hold:
 
-1. Its field must belong to one of the eight preview domains: mathematical; physical; chemical and materials; life; medical, neuroscience and health; earth and environmental; computer and information; or engineering sciences.
-2. The task must genuinely belong to its **assigned** domain/field — read the assignment from `domain` and `field` in task.toml `[metadata]`, which mirror the `tasks/<domain>/<field>/` folder it lives in — not be shoehorned into a field it does not fit. Use task.toml, not the filesystem: `harbor check` grades a staged copy that does not preserve the repository folder path.
+1. Its `domain` must be one of the eight preview primary domains: mathematical; physical; chemical and materials; life; medical, neuroscience and health; earth and environmental; computer and information; or engineering sciences.
+2. Only Engineering Sciences uses `field` as a controlled secondary discipline, and that value must match the task. Outside Engineering Sciences, `field` must be empty. Required `subfield` is a free-text research area, not a controlled taxonomy node.
+3. The task must genuinely belong to its assigned classification and must not be shoehorned into a category it does not fit. Use task.toml, not the filesystem: `harbor check` grades a staged copy that does not preserve the repository folder path.
 
 Judge the actual subject, not the label: an in-scope method (statistics, optimization, simulation, ML) applied to an out-of-scope subject is still out of scope — a computational technique does not launder a non-covered domain into the benchmark. (Whether the work is genuine research-level science needing domain knowledge, rather than generic work, is judged under scientifically_grounded.)
 
-PASS if the task's substantive subject genuinely belongs to its assigned covered-science domain/field. FAIL if the subject is outside the covered sciences, or the task does not actually belong to the domain/field it is placed in (its real subject is a different field, or none)."""
+PASS if the task's substantive subject genuinely belongs to its primary domain and, for an engineering task, its secondary discipline. FAIL if the subject is outside the covered sciences or the controlled assignment is wrong."""
 
 [[criteria]]
 name = "outcome_verified"
@@ -491,13 +492,13 @@ PASS if the explanation clearly and concisely describes the verification strateg
 name = "category_and_tags"
 description = "Classification fields and tags are meaningful and relevant to the task"
 guidance = """
-TB-Science tasks use domain/field/subfield instead of a category field. Do NOT flag the absence of a 'category' field — it is intentionally not used in this benchmark.
+AI4S uses `domain` for the required controlled primary domain, `field` only for the required controlled Engineering Sciences secondary discipline, and `subfield` for a required free-text research area. Outside Engineering Sciences, `field` must be empty. Do NOT flag the absence of a `category` field.
 
 Tags should be specific, relevant keywords that help classify the task and make it discoverable. Tags should describe the skills, tools, scientific domains, or methods involved — not generic terms. Good tags: ["rdkit", "molecular-dynamics", "python", "force-field"]. Bad tags: ["hard", "coding", "task"].
 
 The template default is tags = []. If tags are unchanged (empty list), the author likely forgot to set them.
 
-PASS if domain/field/subfield accurately reflect the task's scientific domain and tags are specific and relevant. FAIL if the classification is wrong, tags are generic or irrelevant, or defaults were left unchanged. Suggest better tags if applicable."""
+PASS if the primary domain and conditional engineering discipline are accurate, any free-text research area is useful, and tags are specific and relevant. FAIL if the controlled classification is wrong, an inapplicable secondary discipline is supplied, tags are generic or irrelevant, or required values were left unchanged. Suggest better tags if applicable."""
 
 [[criteria]]
 name = "task_name"

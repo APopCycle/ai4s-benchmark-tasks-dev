@@ -4,8 +4,9 @@ set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
-FIXTURE="tasks/earth-environmental-sciences/atmospheric-sciences/validator-fixture"
-trap 'rm -rf "$FIXTURE"' EXIT
+FIXTURE="tasks/earth-environmental-sciences/validator-fixture"
+ENGINEERING_FIXTURE="tasks/engineering-sciences/mechanical-engineering/validator-engineering-fixture"
+trap 'rm -rf "$FIXTURE" "$ENGINEERING_FIXTURE"' EXIT
 mkdir -p "$FIXTURE"
 
 write_valid_toml() {
@@ -19,7 +20,8 @@ proposal_id = "AI4S-REF-EARTH-SPARSE-NETWORK"
 proposal_path = "proposals/examples/sparse-network-assimilation.md"
 task_type = "workflow_automation"
 domain = "earth-environmental-sciences"
-field = "atmospheric-sciences"
+field = ""
+subfield = "atmospheric-sciences; data-assimilation"
 EOF
 }
 
@@ -42,11 +44,23 @@ bash ci_checks/check-canary.sh "$FIXTURE" >/dev/null
 echo "PASS positive: formal task gateway fixture"
 
 expect_fail invalid-domain bash ci_checks/check-task-path.sh \
-  tasks/not-a-domain/atmospheric-sciences/validator-fixture
+  tasks/not-a-domain/validator-fixture
+
+sed -i 's/field = ""/field = "atmospheric-sciences"/' "$FIXTURE/task.toml"
+expect_fail nonengineering-secondary bash ci_checks/check-task-path.sh "$FIXTURE"
+write_valid_toml
 
 sed -i 's/domain = "earth-environmental-sciences"/domain = "physical-sciences"/' "$FIXTURE/task.toml"
 expect_fail metadata-path-mismatch bash ci_checks/check-task-path.sh "$FIXTURE"
 write_valid_toml
+
+mkdir -p "$ENGINEERING_FIXTURE"
+cp "$FIXTURE/task.toml" "$ENGINEERING_FIXTURE/task.toml"
+sed -i 's/name = "ai4s-benchmark\/validator-fixture"/name = "ai4s-benchmark\/validator-engineering-fixture"/' "$ENGINEERING_FIXTURE/task.toml"
+sed -i 's/domain = "earth-environmental-sciences"/domain = "engineering-sciences"/' "$ENGINEERING_FIXTURE/task.toml"
+sed -i 's/field = ""/field = "mechanical-engineering"/' "$ENGINEERING_FIXTURE/task.toml"
+bash ci_checks/check-task-path.sh "$ENGINEERING_FIXTURE" >/dev/null
+echo "PASS positive: Engineering Sciences secondary discipline fixture"
 
 sed -i '/proposal_id =/d' "$FIXTURE/task.toml"
 expect_fail missing-proposal-metadata python3 ci_checks/check-ai4s-metadata.py "$FIXTURE"

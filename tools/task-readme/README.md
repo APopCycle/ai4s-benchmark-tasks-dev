@@ -50,7 +50,7 @@ Nothing else in the repo has it, which is what lets `--force` and `--check` tell
 | summary | `[task].description` |
 | Author | `author_name` / `author_organization` / `author_email`, paired per author |
 | Profile | `author_profile` |
-| Domain | `domain` / `field` / `subfield` — what a domain-split leaderboard reads |
+| Domain | required primary `domain`; Engineering-only secondary `field`; required free-text research-area `subfield` |
 | Tags | `tags` |
 | Expert time estimate, Agent budget | `expert_time_estimate_hours`, `[agent].timeout_sec` |
 | Resources | `cpus`, `memory_mb`, `gpus` + `gpu_types` |

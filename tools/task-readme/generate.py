@@ -127,8 +127,9 @@ def render(task_dir: Path) -> str:
         if vals:
             rows.append((label, ", ".join(vals)))
 
-    # domain/field/subfield are what a domain-split leaderboard reads, so they are
-    # surfaced rather than left only in task.toml.
+    # domain is the required primary taxonomy; field is the controlled secondary
+    # discipline only for Engineering Sciences; subfield is a required free-text
+    # research area. Surface all non-empty levels rather than leaving them only in TOML.
     taxonomy = " / ".join(str(md[k]).strip() for k in ("domain", "field", "subfield")
                           if md.get(k) and str(md[k]).strip())
     if taxonomy:

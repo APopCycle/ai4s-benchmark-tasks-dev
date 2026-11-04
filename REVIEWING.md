@@ -1,35 +1,30 @@
 # Reviewing proposals and tasks
 
-## Proposal
+## Roles
 
-One conflict-free domain reviewer checks author-task fit, real scientific value,
-task type, objective verifiability, feasibility and meaningful difficulty. For
-frontier tasks, also check the dated SOTA evidence and preregistered progress
-threshold. Approval plus merge means the idea may be implemented; it does not
-guarantee task acceptance.
+- **Domain Chairs** assess scientific validity, importance, difficulty, and
+  field-appropriate evaluation.
+- **Tech Reviewers / Tech Group** assess Harbor implementation, reproducibility,
+  verifier integrity, automated reviews, and model trials.
+- **Project Core Community / Core Committee** makes the final portfolio and
+  release decision with the Tech Group and contributor.
 
-## Task implementation
+## Review process
 
-The TBS three-slot process is retained:
+1. **Contributor task proposal + self quality check:** the contributor completes
+   the proposal and runs a rubric-based LLM review.
+2. **Task Proposal Review — Domain Chair + Tech Group:** review scientific fit,
+   value, feasibility, objective evaluation, and proposed difficulty.
+3. **Contributor task construction + self quality check:** implement the task;
+   run mechanical checks, LLM implementation review, and GLM pass-rate trials.
+4. **Task Review — Domain Chair + Tech Group:** review the scientific contract
+   and the complete Harbor implementation.
+5. **Frontier Model Evaluation:** measure Opus/GPT pass rates, review trajectories
+   with an LLM, and run adversarial cheat review.
+6. **Final Task Review — Tech Group + Core Committee + Contributor:** resolve
+   remaining scientific, technical, and evaluation issues.
+7. **Final Task Confirmation & Formal Evaluation:** confirm inclusion and run the
+   formal evaluation configuration.
 
-1. **Domain reviewer**: scientific validity, value, field conventions, metrics,
-   thresholds, human-time estimate and acceptable alternative methods.
-2. **Technical reviewer**: Harbor implementation, isolation, reproducibility,
-   canary, artifact safety, oracle/nop, reward integrity and anti-cheat tests.
-3. **Final reviewer**: distinct bar-raiser checking the complete evidence chain,
-   task difficulty and portfolio value.
-
-Domain and technical review run in parallel. Final review starts only after both
-approve. LLM rubric results and model trials are evidence, never human approval.
-
-## Minimum evidence
-
-- static checks pass;
-- oracle passes repeatedly and nop fails;
-- correct alternatives pass; malformed/trivial/shortcut attempts fail;
-- a trajectory review separates scientific failure from infrastructure failure;
-- data, dependencies, ethics and conflicts are documented;
-- instruction requirements and verifier gates map both ways.
-
-Use `rubrics/task-implementation.toml` and `rubrics/trial-analysis.toml` as the
-detailed TBS-derived checklists.
+Automated checks and LLM reviews provide evidence; accountable humans make all
+approval and release decisions. Detailed rubrics live under `rubrics/`.

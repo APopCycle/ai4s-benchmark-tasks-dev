@@ -21,7 +21,6 @@ REQUIRED_FIELDS=(
     # stays here because it describes the AUTHOR and rubrics/author-fit.md reads it
     # from task.toml. Mirrors terminal-bench-3, whose task.toml carries no prose.
     "domain"
-    "field"
     "subfield"
     "tags"
     "expert_time_estimate_hours"
@@ -126,6 +125,17 @@ def is_empty(v):
         return len(v) == 0
     return False
 
+DOMAINS = {
+    "mathematical-sciences", "physical-sciences", "chemical-materials-sciences",
+    "life-sciences", "medical-neuroscience-health-sciences",
+    "earth-environmental-sciences", "computer-information-sciences",
+    "engineering-sciences",
+}
+ENGINEERING_DISCIPLINES = {
+    "electronic-engineering", "mechanical-engineering", "aerospace-engineering",
+    "energy-engineering", "automation-control-robotics",
+}
+
 # Where else a field might have been written, to make the diagnostic actionable.
 def elsewhere(field):
     hits = [k for k, v in data.items() if isinstance(v, dict) and k != "metadata" and field in v]
@@ -149,6 +159,25 @@ for field in required:
         print(f"FAIL {path}: [metadata].{field} is present but empty; fill it in "
               f"(see task-template.toml)")
         failed = True
+
+domain = meta.get("domain")
+discipline = meta.get("field")
+research_area = meta.get("subfield")
+if domain not in DOMAINS:
+    print(f"FAIL {path}: [metadata].domain must be one of {', '.join(sorted(DOMAINS))}")
+    failed = True
+if domain == "engineering-sciences":
+    if discipline not in ENGINEERING_DISCIPLINES:
+        print(f"FAIL {path}: Engineering Sciences requires [metadata].field to be one of "
+              f"{', '.join(sorted(ENGINEERING_DISCIPLINES))}")
+        failed = True
+elif discipline not in (None, ""):
+    print(f"FAIL {path}: [metadata].field is only for the Engineering Sciences secondary discipline; "
+          f"leave it empty and put the required free-text research area in [metadata].subfield")
+    failed = True
+if research_area is not None and not isinstance(research_area, str):
+    print(f"FAIL {path}: required [metadata].subfield must be a non-empty free-text string")
+    failed = True
 
 # author_organization: reject near-miss spellings of "no affiliation" so the
 # suite keeps one string for it. A real affiliation is never in this set.

@@ -171,8 +171,7 @@ def get_dris(pr: dict) -> list[str]:
 def task_name(pr: dict) -> str:
     """Extract task name from changed files.
 
-    Tasks may be nested under category folders (e.g., tb-science uses
-    ``tasks/<domain>/<field>/<task>/...``), so the task name is the directory
+    Tasks may have taxonomy-dependent path depth, so the task name is the directory
     containing ``task.toml``. Fallbacks: deepest common folder under ``tasks/``
     across changed files, then the PR title.
     """
@@ -205,16 +204,16 @@ def task_name(pr: dict) -> str:
 def review_stage(pr: dict) -> int:
     """Count of parallel approvals so far.
 
-    The domain and general reviewers review in parallel; the final reviewer is
-    assigned only after both approve. So:
+    The Domain Chair and Tech Group review in parallel; final review starts
+    only after both approve. So:
       0 = in parallel review (neither approved yet)
       1 = one of the two parallel reviewers approved
-      2 = both approved → in final review (or final reviewer has approved)
+      2 = both approved → in final review
     """
     labels = label_names(pr)
     if any("final review" in l for l in labels):
         return 2
-    return sum(1 for kind in ("domain review", "general review")
+    return sum(1 for kind in ("domain review", "tech review")
                if any(kind in l for l in labels))
 
 
@@ -377,8 +376,8 @@ def generate_html(repo: str, title: str, cats: dict, reviewer_rows: list[dict], 
 <ul>
   <li>{total} <a href="{pulls}?q=is%3Aopen+is%3Apr+label%3A{q('"new task"')}">task PRs</a> open
     <ul>
-      <li>{n2} <a href="{pulls}?q=is%3Aopen+is%3Apr+label%3A{q('"final review ✅"')}">in final review</a> (both parallel reviewers approved)</li>
-      <li>{n1} <a href="{pulls}?q=is%3Aopen+is%3Apr+label%3A{q('"new task"')}+-label%3A{q('"final review ✅"')}">one approval</a> (one of two parallel reviewers approved)
+      <li>{n2} <a href="{pulls}?q=is%3Aopen+is%3Apr+label%3A{q('"final review ✅"')}">in final review</a> (Domain Chair and Tech Group approved)</li>
+      <li>{n1} <a href="{pulls}?q=is%3Aopen+is%3Apr+label%3A{q('"new task"')}+-label%3A{q('"final review ✅"')}">one approval</a> (Domain Chair or Tech Group approved)
         <ul>
           <li>{n1_author} waiting on author</li>
           <li>{n1_reviewer} waiting on reviewer</li>
@@ -386,8 +385,8 @@ def generate_html(repo: str, title: str, cats: dict, reviewer_rows: list[dict], 
       </li>
       <li>{n0} in parallel review (neither approved yet)
         <ul>
-          <li>{n0_author} <a href="{pulls}?q=is%3Aopen+is%3Apr+label%3A{q('"new task"')}+-label%3A{q('"domain review ✅"')}+-label%3A{q('"general review ✅"')}+-label%3A{q('"final review ✅"')}+label%3A{q('"waiting on author"')}">waiting on author</a></li>
-          <li>{n0_reviewer} <a href="{pulls}?q=is%3Aopen+is%3Apr+label%3A{q('"new task"')}+-label%3A{q('"domain review ✅"')}+-label%3A{q('"general review ✅"')}+-label%3A{q('"final review ✅"')}+label%3A{q('"waiting on reviewer"')}">waiting on reviewer</a></li>
+          <li>{n0_author} <a href="{pulls}?q=is%3Aopen+is%3Apr+label%3A{q('"new task"')}+-label%3A{q('"domain review ✅"')}+-label%3A{q('"tech review ✅"')}+-label%3A{q('"final review ✅"')}+label%3A{q('"waiting on author"')}">waiting on author</a></li>
+          <li>{n0_reviewer} <a href="{pulls}?q=is%3Aopen+is%3Apr+label%3A{q('"new task"')}+-label%3A{q('"domain review ✅"')}+-label%3A{q('"tech review ✅"')}+-label%3A{q('"final review ✅"')}+label%3A{q('"waiting on reviewer"')}">waiting on reviewer</a></li>
         </ul>
       </li>
     </ul>

@@ -10,23 +10,27 @@ Local equivalents:
 
 ```bash
 python3 scripts/check_proposal.py proposals/<domain>/<task>.md
-bash scripts/run_task_checks.sh tasks/<domain>/<field>/<task>
+bash scripts/run_task_checks.sh <task-path>
 ```
 
 Reference tasks use:
 
 ```bash
-bash scripts/run_task_checks.sh --reference reference-tasks/<domain>/<field>/<task>
+bash scripts/run_task_checks.sh --reference <reference-task-path>
 ```
 
 Reference tasks retain the upstream canary, so the local reference mode omits
 the AI4S-canary and formal-path checks while retaining implementation checks.
 
-## Optional evaluation
+## Model-based evaluation
 
-Frontier-model runs, trajectory analysis and cheat trials are initially local
-or manually dispatched because they require model/API/cloud credentials. They
-remain required review evidence when available but are not default CI jobs.
+LLM rubric reviews, GLM pass-rate trials, Opus/GPT evaluation, trajectory
+analysis, and adversarial cheat trials are initially local or manually
+dispatched because they require model/API/cloud credentials. They are review
+stages rather than default secret-free CI jobs. See Harbor's
+[agent list](https://docs.harborframework.com/agents/pre-integrated-agents) and
+[authentication guide](https://docs.harborframework.com/agents/agent-auth-resolution)
+for model and API-key configuration.
 
 ## Deliberately absent TBS integrations
 
