@@ -7,7 +7,7 @@
 # - 4-segment path (the contributor must place the task under both a
 #   domain and a field; 3-segment paths like `tasks/<domain>/<task>/`
 #   are rejected)
-# - <domain> is one of the 5 canonical domains
+# - <domain> is one of the 8 canonical AI4S domains
 # - <field> is a valid key under `reviewers_by_field` in
 #   .github/reviewer-pool.yml (single source of truth — the check
 #   reads it from the *base* branch checkout so PR authors can't
@@ -51,8 +51,14 @@ import os, sys
 task_dir, pool_file = sys.argv[1], sys.argv[2]
 
 CANONICAL_DOMAINS = [
-    "life-sciences", "physical-sciences", "earth-sciences",
-    "mathematical-sciences", "engineering-sciences",
+    "mathematical-sciences",
+    "physical-sciences",
+    "chemical-materials-sciences",
+    "life-sciences",
+    "medical-neuroscience-health-sciences",
+    "earth-environmental-sciences",
+    "computer-information-sciences",
+    "engineering-sciences",
 ]
 
 parts = task_dir.split("/")

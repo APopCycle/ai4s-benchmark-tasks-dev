@@ -42,12 +42,12 @@ python3 tools/rubric-tuning/run_eval.py --tasks fail-rubric-anti-cheat
 python3 tools/rubric-tuning/run_eval.py --source all
 ```
 
-Requires Docker: harbor 0.20+ runs `check` as an agent job in a container environment. Or run it in
-CI with no local setup — the [Rubric Eval](../../.github/workflows/rubric-eval.yml) workflow wraps
-exactly this, resolves the judge from `.github/llm-config.yml`, and uploads the report:
+Requires Docker: harbor 0.20+ runs `check` as an agent job in a container
+environment. Upstream TBS also has a secret-backed Rubric Eval workflow; it is
+intentionally not enabled in this Dev preview. Run locally with:
 
 ```bash
-gh workflow run "Rubric Eval (real harbor check)" -f source=synthetic
+python3 tools/rubric-tuning/run_eval.py --source synthetic
 ```
 
 Results go to `tools/rubric-tuning/results/<run-id>/` with:

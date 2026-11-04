@@ -86,11 +86,11 @@ PASS if the task is a realistic, research-level scientific computing problem dra
 
 [[criteria]]
 name = "scope"
-description = "In scope for TB-Science — belongs to its assigned covered-science domain/field"
+description = "In scope for AI4S — belongs to its assigned covered-science domain/field"
 guidance = """
-The task must be **in scope for TB-Science**, and two things must hold:
+The task must be **in scope for AI4S**, and two things must hold:
 
-1. Its field must be one of the covered sciences — **life sciences** (biology, medicine, neuroscience, ecology), **physical sciences** (astronomy, chemistry, materials science, physics), **earth sciences** (atmospheric sciences, ocean sciences, geosciences, environmental sciences), **mathematical sciences** (applied mathematics, formal mathematics, operations research, statistics), or **engineering sciences** (chemical, civil, electrical, mechanical engineering).
+1. Its field must belong to one of the eight preview domains: mathematical; physical; chemical and materials; life; medical, neuroscience and health; earth and environmental; computer and information; or engineering sciences.
 2. The task must genuinely belong to its **assigned** domain/field — read the assignment from `domain` and `field` in task.toml `[metadata]`, which mirror the `tasks/<domain>/<field>/` folder it lives in — not be shoehorned into a field it does not fit. Use task.toml, not the filesystem: `harbor check` grades a staged copy that does not preserve the repository folder path.
 
 Judge the actual subject, not the label: an in-scope method (statistics, optimization, simulation, ML) applied to an out-of-scope subject is still out of scope — a computational technique does not launder a non-covered domain into the benchmark. (Whether the work is genuine research-level science needing domain knowledge, rather than generic work, is judged under scientifically_grounded.)
@@ -597,6 +597,7 @@ task.toml must contain only fields recognized by Harbor. Extra fields are silent
 Valid sections and their fields (defined by the Harbor library):
 
 [metadata] — free-form in Harbor, but this benchmark expects only these fields:
+- proposal_id, proposal_path, task_type
 - author_name, author_email, author_organization, author_profile
 - research_advisor, referred_by (both optional — absent is fine, do not fault a task for omitting them)
 - domain, field, subfield, tags, expert_time_estimate_hours
@@ -610,7 +611,7 @@ task for their absence from task.toml. relevant_experience stays in task.toml be
 describes the AUTHOR rather than the task, and rubrics/author-fit.md reads it from there.
 
 [task]:
-- name (required: must be exactly "terminal-bench-science/<task-folder-name>" — the
+- name (required: must be exactly "ai4s-benchmark/<task-folder-name>" — the
   identifier the task publishes under on Harbor Hub and the key tasks/dataset.toml
   references; ci_checks/check-task-fields.sh enforces it)
 - description (required: the one-sentence summary harbor publish writes to the task's

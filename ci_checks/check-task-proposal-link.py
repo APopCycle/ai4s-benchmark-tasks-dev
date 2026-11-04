@@ -1,161 +1,65 @@
 #!/usr/bin/env python3
-"""
-Check that a `new task` PR references an approved Task Proposal discussion.
+"""Verify that a task points to an already-present, matching Markdown proposal."""
 
-Usage:
-    check-task-proposal-link.py <pr_number>
+from __future__ import annotations
 
-Required env vars:
-    REPO       owner/name
-    GH_TOKEN   PAT / GITHUB_TOKEN (for `gh` CLI)
-
-Validation steps (in order — fails on the first that doesn't pass):
-
-  1. PR has the `new task` label.
-     If `task fix` is the label instead, the check switches to the
-     TASK-ISSUE rule (below) — a repair links the issue it fixes, not a
-     proposal. If neither label is set yet (race with the labeller), the
-     check assumes `new task` and enforces.
-
-     Task-issue rule (`task fix` PRs): the body must reference an issue in
-     this repo via a closing keyword — `Fixes #123` / `Closes #123` /
-     `Resolves #123` — or an issue URL, and the number must be an ISSUE
-     (not a PR). Filed through the Task fix request form, the issue carries
-     the task's original reviewers, who then review the PR.
-
-  2. PR body contains at least one link to a discussion in this repo:
-        https://github.com/<REPO>/discussions/<N>
-     Bare `#NNN` references are NOT accepted (they're ambiguous —
-     could be issue/PR/discussion). HTML-commented text is ignored.
-
-  3. The linked discussion is in the "Task Proposals" category.
-
-  4. The linked discussion has the `proposal-approved ✅` label.
-
-Exits 0 (with `PASS:` line) on success, 1 (with `FAIL:` line) on failure.
-"""
-
-import json
-import os
+import argparse
 import re
-import subprocess
 import sys
+import tomllib
+from pathlib import Path
 
 
-def gh_json(args: list[str]) -> dict | list | None:
-    r = subprocess.run(args, capture_output=True, text=True)
-    if r.returncode != 0:
-        return None
-    try:
-        return json.loads(r.stdout)
-    except json.JSONDecodeError:
-        return None
-
-def check_task_issue_link(repo: str, owner: str, name: str, body: str) -> int:
-    """`task fix` PRs: require a link to the Task Issue being fixed."""
-    body_no_comments = re.sub(r"<!--.*?-->", "", body, flags=re.DOTALL)
-    pattern = re.compile(
-        r"(?:\b(?:fix(?:e[sd])?|close[sd]?|resolve[sd]?)\b\s*:?\s*#(\d+))"
-        rf"|(?:https://github\.com/{re.escape(owner)}/{re.escape(name)}/issues/(\d+))",
-        re.IGNORECASE,
+def proposal_value(text: str, label: str) -> str | None:
+    match = re.search(
+        rf"^-\s*{re.escape(label)}\s*:\s*(.+?)\s*$",
+        text,
+        re.MULTILINE | re.IGNORECASE,
     )
-    nums = sorted({int(m.group(1) or m.group(2)) for m in pattern.finditer(body_no_comments)})
-    if not nums:
-        print("FAIL: `task fix` PR doesn't reference the Task Issue it fixes.")
-        print("      Expected `Fixes #<issue>` in the PR body (the template's 'Task issue' line).")
-        print(f"      No issue yet? File one first: https://github.com/{repo}/issues/new?template=task-fix.yml")
-        return 1
-    failures = []
-    for n in nums:
-        info = gh_json(["gh", "api", f"repos/{repo}/issues/{n}"])
-        if not info:
-            failures.append(f"#{n}: not found in {repo}")
-            continue
-        if info.get("pull_request"):
-            failures.append(f"#{n}: is a pull request, not an issue")
-            continue
-        print(f"PASS: Linked Task Issue #{n} ({info.get('state')}): {info.get('title', '')[:80]}")
-        return 0
-    print("FAIL: No referenced number is an issue in this repo.")
-    for f in failures:
-        print(f"      {f}")
-    return 1
+    return match.group(1).strip().strip("`") if match else None
 
 
 def main() -> int:
-    if len(sys.argv) < 2:
-        print("FAIL: usage: check-task-proposal-link.py <pr_number>", file=sys.stderr)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("task_dir", type=Path)
+    parser.add_argument("--base-root", type=Path, default=Path(__file__).resolve().parents[1])
+    args = parser.parse_args()
+    with (args.task_dir / "task.toml").open("rb") as handle:
+        config = tomllib.load(handle)
+    metadata = config.get("metadata", {})
+    proposal_path = metadata.get("proposal_path")
+    proposal_id = metadata.get("proposal_id")
+    task_type = metadata.get("task_type")
+    if not isinstance(proposal_path, str) or not proposal_path.startswith("proposals/"):
+        print("FAIL: task.toml must contain a repo-relative proposals/... proposal_path")
         return 1
-    pr = sys.argv[1]
-    repo = os.environ.get("REPO", "")
-    if not repo:
-        print("FAIL: REPO env var required (owner/name)", file=sys.stderr)
+    candidate = (args.base_root.resolve() / proposal_path).resolve()
+    proposals_root = (args.base_root.resolve() / "proposals").resolve()
+    try:
+        candidate.relative_to(proposals_root)
+    except ValueError:
+        print("FAIL: proposal_path escapes proposals/")
         return 1
-    owner, _, name = repo.partition("/")
-
-    # 1. Label check
-    pr_info = gh_json([
-        "gh", "pr", "view", pr, "--repo", repo,
-        "--json", "labels,body",
-    ]) or {}
-    labels = {l["name"] for l in pr_info.get("labels", [])}
-    if "task fix" in labels and "new task" not in labels:
-        return check_task_issue_link(repo, owner, name, pr_info.get("body") or "")
-
-    # 2. Find discussion links in body (excluding HTML comments)
-    body = pr_info.get("body") or ""
-    body_no_comments = re.sub(r"<!--.*?-->", "", body, flags=re.DOTALL)
-    pattern = re.compile(
-        rf"https://github\.com/{re.escape(owner)}/{re.escape(name)}/discussions/(\d+)"
-    )
-    nums = sorted({int(m.group(1)) for m in pattern.finditer(body_no_comments)})
-
-    if not nums:
-        print("FAIL: PR body has no link to a Task Proposal discussion.")
-        print(f"      Expected: https://github.com/{repo}/discussions/<N>")
-        print("      The PR template's '## Task Proposal' section should be filled in.")
+    if not candidate.is_file():
+        print(f"FAIL: approved proposal is absent from base branch: {proposal_path}")
         return 1
-
-    # 3 & 4. Validate each linked discussion. PASS as soon as we find a valid one.
-    failures = []
-    for n in nums:
-        query = (
-            "{ repository(owner: \"" + owner + "\", name: \"" + name + "\") { "
-            "discussion(number: " + str(n) + ") { "
-            "number category { name } labels(first: 20) { nodes { name } } "
-            "} } }"
-        )
-        result = gh_json(["gh", "api", "graphql", "-f", f"query={query}"])
-        if not result:
-            failures.append(f"#{n}: not found in {repo}")
-            continue
-        disc = (result.get("data") or {}).get("repository", {}).get("discussion")
-        if not disc:
-            failures.append(f"#{n}: not found in {repo}")
-            continue
-        category = (disc.get("category") or {}).get("name", "")
-        if category != "Task Proposals":
-            failures.append(f"#{n}: category is '{category}', not 'Task Proposals'")
-            continue
-        disc_labels = {l["name"] for l in (disc.get("labels", {}).get("nodes") or [])}
-        # Accept the current name and the legacy pre-rename name, so the label
-        # rename (proposal-approved -> "proposal-approved ✅") can't fail PRs.
-        approved_names = {"proposal-approved ✅", "proposal-approved"}
-        if not (disc_labels & approved_names):
-            failures.append(
-                f"#{n}: doesn't have the `proposal-approved ✅` label "
-                f"(current labels: {sorted(disc_labels) or '[]'})"
-            )
-            continue
-
-        print(f"PASS: Linked proposal #{n} is in Task Proposals and is approved.")
-        return 0
-
-    print("FAIL: No linked discussion is an approved Task Proposal.")
-    for f in failures:
-        print(f"      {f}")
-    print("      Make sure the PR body links to the approved proposal discussion.")
-    return 1
+    text = candidate.read_text(encoding="utf-8")
+    expected = {
+        "Proposal ID": proposal_id,
+        "Task type": task_type,
+        "Primary domain": metadata.get("domain"),
+        "Primary field": metadata.get("field"),
+    }
+    failed = False
+    for label, task_value in expected.items():
+        proposal = proposal_value(text, label)
+        if proposal != task_value:
+            print(f"FAIL: {label} mismatch: proposal={proposal!r}, task.toml={task_value!r}")
+            failed = True
+    if failed:
+        return 1
+    print(f"PASS: {args.task_dir} links approved proposal {proposal_path}")
+    return 0
 
 
 if __name__ == "__main__":

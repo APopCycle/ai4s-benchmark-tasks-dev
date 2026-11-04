@@ -5,9 +5,12 @@ set -e
 
 # Required fields in task.toml files
 # CUSTOMIZE: org namespace every [task].name must use (matches dataset.toml).
-TASK_NAMESPACE="terminal-bench-science"
+TASK_NAMESPACE="ai4s-benchmark"
 
 REQUIRED_FIELDS=(
+    "proposal_id"
+    "proposal_path"
+    "task_type"
     "author_name"
     "author_email"
     "author_organization"

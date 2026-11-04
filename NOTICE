@@ -1,0 +1,8 @@
+AI4S Benchmark Tasks Dev Preview
+
+This repository contains material derived from Terminal-Bench-Science,
+Copyright its respective contributors, licensed under Apache License 2.0.
+The pinned source revision and adaptation scope are documented in UPSTREAM.md.
+
+Reference tasks retain their original authorship, notices and training-data
+canary. New AI4S tasks use the AI4S canary defined in task-template.toml.

@@ -12,7 +12,7 @@ A regression run therefore measures **catch rate** (recall on planted failures).
 
 TB-Science's `/review` runs `harbor check -r rubrics/task-implementation.toml`, which builds its own prompt from the rubric. This harness runs its own reviewer instruction ([templates/instruction.md](templates/instruction.md)) over the same rubric. So a run measures **whether the rubric's own wording makes each planted defect detectable by the judge model** — it will catch a rubric edit that blunts a criterion, and a judge-model regression, which is what it is for. It does not reproduce `harbor check`'s exact prompt.
 
-In terminal-bench-3 there is no such gap: TB3 migrated its production reviewer to `harbor exec` with *this* instruction template, so harness and reviewer are the same prompt by construction. Closing the gap here means the same migration (TB3 issue #1287 item 1). The complement is `tools/rubric-tuning/run_eval.py`, which drives the real `harbor check` and is now harbor-0.20-compatible. It runs on demand via the [Rubric Eval](../../.github/workflows/rubric-eval.yml) workflow rather than gating PRs, because each labeled task costs a full `/review`-sized judge run — reach for it after a substantive rubric rewrite or a judge swap, and for precision numbers this fail-only set cannot produce.
+In terminal-bench-3 there is no such gap: TB3 migrated its production reviewer to `harbor exec` with *this* instruction template, so harness and reviewer are the same prompt by construction. Closing the gap here means the same migration (TB3 issue #1287 item 1). The complement is `tools/rubric-tuning/run_eval.py`, which drives the real `harbor check` and is now harbor-0.20-compatible. Upstream TBS runs it on demand with a secret-backed workflow; that workflow is intentionally not enabled in this Dev preview.
 
 ## Workflow
 
@@ -38,7 +38,9 @@ The generated tree (`datasets/rubric-regression/`) is gitignored and rebuilt on 
 
 ## CI
 
-[`.github/workflows/rubric-regression.yml`](../../.github/workflows/rubric-regression.yml) runs on PRs touching the rubric, any `fail-rubric-*` task, `labels.json`, or this tool. It regenerates the dataset, runs the oracle plumbing check, runs the reviewer over all 37 meta-tasks on `-e docker`, posts the catch rate and a per-task table as a sticky comment, and fails unless every planted failure is caught. A trial that errors through all retries counts as a miss. Fork PRs are skipped (no secrets); it can also be triggered by `workflow_dispatch`.
+Upstream TBS's secret-backed rubric-regression workflow runs on rubric-related
+PRs. It is intentionally not enabled in this Dev preview. Use the local commands
+above only when changing the inherited rubric.
 
 ## Task selection
 
